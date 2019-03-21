@@ -1,0 +1,219 @@
+<html>
+
+<head>
+    <title>Client - Futerio</title>
+
+    <!--
+
+        Versão alpha 1.0.0
+
+    -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        #screen {
+            border: 1px solid black;
+            position: fixed;
+            top: 0;
+            z-index: 3;
+            left: 0;
+        }
+
+        #maper {
+            border: 1px solid black;
+            position: fixed;
+            top: 0;
+            z-index: 1;
+            left: 0;
+            /*background-image: url('grama.jpg');*/
+        }
+
+        #players {
+            border: 1px solid black;
+            position: fixed;
+            top: 0;
+            z-index: 2;
+            left: 0;
+        }
+
+        #chat {
+            position: fixed;
+            top: 400px;
+            width: 840px;
+            left: 0px;
+            background-color: #eee;
+            height: 300px;
+        }
+
+        .current-chat {
+            position: fixed;
+            width: 840px;
+            top: 400px;
+            background-color: #eee;
+            padding: 20px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
+</head>
+
+<body align="center">
+
+    <canvas id="screen" width="840" height="400">
+        Seu navegador não suporta HTML5
+    </canvas>
+    <canvas id="maper" width="840" height="400">
+        Seu navegador e ruim
+    </canvas>
+    <canvas id="players" width="840" height="400">
+        Seu navegador e ruim
+    </canvas>
+
+    <div class="logger">
+        <h3>Logger</h3>
+        <div id="playerLogger"></div>
+        <div id="mapLogger"></div>
+        <div id="mouseLogger"></div>
+    </div>
+
+
+    <div class="message-wrap col-lg-8 current-chat">
+        <div class="msg-wrap" style="max-height: 150px; height: 150px; min-height: 150px; overflow-y: scroll; display: inline-block; vertical-align: bottom;"
+            id="msgs">
+
+
+
+        </div>
+
+        <div class="send-wrap" style="margin-top: 20px;">
+            <form id="frmSender">
+                <input type="text" class="form-control send-message" autocomplete="off" id="msger" style="resize: vertical;" rows="1" placeholder="Mensagem">
+
+
+        </div>
+        <div class="btn-panel">
+
+            <input type="submit" value="Enviar" class=" col-lg-4 text-right btn   send-message-btn pull-right btn btn-success">
+            </form>
+        </div>
+    </div>
+    </div>
+    </div>
+
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="engine/map.js"></script>
+    <script src="util/logger.js"></script>
+    <script src="engine/core.js"></script>
+    <script src="engine/player.js"></script>
+    <script>
+        var name = prompt("Qual é seu nome");
+        player.name = name;
+        player.color = "purple";
+        switch (player.color) {
+            case 'brown':
+                void(0);
+                break;
+            case 'purple':
+                void(0);
+                break;
+            case 'orange':
+                void(0);
+                break;
+            case 'green':
+                void(0);
+                break;
+            case 'pink':
+                void(0);
+                break;
+            default:
+                player.color = 'grey';
+                break;
+        }
+        player.render();
+
+        var socket = io.connect();
+
+        var blockedTiles = [];
+        blockedTiles.push({
+            x: player.xpos,
+            y: player.ypos,
+            name: name
+        });
+
+        // population.render(data);
+
+        socket.on('renderPlayers', function (data) {
+            // console.log(data);
+            // blockedTiles.push(data)
+            // blockedTiles.forEach(function(obj, i){
+            //     console.log(data.name + ' - ' + obj.name);
+            //     if(obj.name == data.name){
+            //         return obj = data;
+            //     }
+
+            var tempPlayer = blockedTiles.find(x => {
+                return x.name == data.name
+            });
+
+
+            if (tempPlayer) {
+                for (var i = 0; i < blockedTiles.length; i++) {
+                    if (blockedTiles[i].name == tempPlayer.name) {
+                        blockedTiles[i].x = data.x;
+                        blockedTiles[i].y = data.y;
+                        blockedTiles[i].color = data.color;
+                    }
+                }
+            } else {
+                blockedTiles.push(data);
+            }
+            population.render();
+
+            // if(tempPlayer){
+            //     blockedTiles.forEach(x => {
+            //         if(x.name == tempPlayer.name) return x = tempPlayer;
+            //     });
+            // }else{
+            //     blockedTiles.push(tempPlayer);
+            // }
+        });
+        // population.render(data);
+
+
+        socket.on('goal', function (data) {
+            console.log('eae')
+             window.location = '';
+        });
+
+        socket.on('msger', function (data) {
+            document.getElementById("msgs").innerHTML +=
+                "<div class='media msg'><a class='pull-left' href='#'><div class='media-object' alt='64x64' style='background-color: " +
+                data.color + "; width: 32px; height: 32px; font-size: 20px; color: white;' src=''>" + data.player
+                .charAt(0) + "</div></a><div class='media-body' align='left'><small><b>" + data.player +
+                "</b></a> : " + data.txt + "</small></div></div>";
+            $("#msgs").animate({
+                scrollTop: $(document).height()
+            }, "slow");
+        });
+
+        $("#frmSender").submit(function (e) {
+            e.preventDefault();
+
+            var txtSend = document.getElementById("msger").value;
+            if(txtSend == "/clear") document.getElementById("msgs").innerHTML = "";
+            else{
+            if (txtSend != null && txtSend != "" && txtSend.length > 2 && txtSend.length < 100) {
+                socket.emit('chat', {
+                    player: player.name,
+                    txt: txtSend,
+                    color: player.color
+                });
+            }
+            }
+            document.getElementById("msger").value = "";
+
+        });
+    </script>
+</body>
+
+</html>
